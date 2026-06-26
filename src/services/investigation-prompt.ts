@@ -110,6 +110,70 @@ EXAMPLES
   "confidence": 0.95,
   "reason_codes": ["phishing", "credential_protection"]
 }
+
+4) Refund request requiring safe handling:
+{
+  "ticket_id": "TKT-004",
+  "relevant_transaction_id": "TXN-9401",
+  "evidence_verdict": "consistent",
+  "case_type": "refund_request",
+  "severity": "low",
+  "department": "customer_support",
+  "agent_summary": "Customer requests refund of 500 BDT for TXN-9401 due to a change of mind.",
+  "recommended_next_action": "Inform the customer that refund eligibility depends on the merchant's policy and guide them to contact the merchant.",
+  "customer_reply": "Thank you for reaching out. Refunds for completed merchant payments depend on the merchant's own policy. We recommend contacting the merchant directly. If you need help reaching them, please reply and we will guide you. Please do not share your PIN or OTP with anyone.",
+  "human_review_required": false,
+  "confidence": 0.85,
+  "reason_codes": ["refund_request", "merchant_policy_dependent"]
+}
+
+5) Agent cash-in issue in Bangla:
+{
+  "ticket_id": "TKT-007",
+  "relevant_transaction_id": "TXN-9701",
+  "evidence_verdict": "consistent",
+  "case_type": "agent_cash_in_issue",
+  "severity": "high",
+  "department": "agent_operations",
+  "agent_summary": "Customer reports a 2000 BDT cash-in via AGENT-318 (TXN-9701) that is not reflected in balance.",
+  "recommended_next_action": "Investigate TXN-9701 pending status with agent operations and confirm settlement state.",
+  "customer_reply": "আপনার লেনদেন TXN-9701 এর বিষয়ে আমরা অবগত হয়েছি। আমাদের এজেন্ট অপারেশন্স দল এটি দ্রুত যাচাই করবে এবং অফিসিয়াল চ্যানেলে আপনাকে জানাবে। অনুগ্রহ করে কারো সাথে আপনার পিন বা ওটিপি শেয়ার করবেন না।",
+  "human_review_required": true,
+  "confidence": 0.88,
+  "reason_codes": ["agent_cash_in", "pending_transaction", "agent_ops"]
+}
+
+6) Duplicate payment claim:
+{
+  "ticket_id": "TKT-010",
+  "relevant_transaction_id": "TXN-10002",
+  "evidence_verdict": "consistent",
+  "case_type": "duplicate_payment",
+  "severity": "high",
+  "department": "payments_ops",
+  "agent_summary": "Customer reports duplicate payment for electricity bill with two identical 850 BDT payments.",
+  "recommended_next_action": "Verify the duplicate with payments_ops and, if confirmed, initiate reversal of the second payment.",
+  "customer_reply": "We have noted the possible duplicate payment for transaction TXN-10002. Our payments team will verify with the biller and any eligible amount will be returned through official channels. Please do not share your PIN or OTP with anyone.",
+  "human_review_required": true,
+  "confidence": 0.93,
+  "reason_codes": ["duplicate_payment", "biller_verification_required"]
+}
+
+7) Merchant settlement delay:
+{
+  "ticket_id": "TKT-009",
+  "relevant_transaction_id": "TXN-9901",
+  "evidence_verdict": "consistent",
+  "case_type": "merchant_settlement_delay",
+  "severity": "medium",
+  "department": "merchant_operations",
+  "agent_summary": "Merchant reports a delayed 15000 BDT settlement (TXN-9901) beyond the expected next-day window.",
+  "recommended_next_action": "Route to merchant_operations to verify settlement batch status and update the merchant.",
+  "customer_reply": "We have noted your concern about settlement TXN-9901. Our merchant operations team will check the batch status and update you on the expected settlement time through official channels.",
+  "human_review_required": false,
+  "confidence": 0.92,
+  "reason_codes": ["merchant_settlement", "delay", "pending"]
+}
 `;
 
     const language = input.language ?? "en";
