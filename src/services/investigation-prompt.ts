@@ -59,6 +59,59 @@ RESPONSE CONTRACT
 - reason_codes must contain at least one short, snake_case identifier if present.
 - customer_reply must be safe, polite, and contain NO credential requests.`;
 
+    const exampleSection = `
+
+EXAMPLES
+
+1) Wrong transfer with matching evidence:
+{
+  "ticket_id": "TKT-001",
+  "relevant_transaction_id": "TXN-9101",
+  "evidence_verdict": "consistent",
+  "case_type": "wrong_transfer",
+  "severity": "high",
+  "department": "dispute_resolution",
+  "agent_summary": "Customer reports a wrong-transfer claim clearly tied to TXN-9101.",
+  "recommended_next_action": "Verify transaction details and initiate dispute workflow.",
+  "customer_reply": "We have noted your concern about TXN-9101. Please do not share your PIN or OTP. Our dispute team will review and contact you through official channels.",
+  "human_review_required": true,
+  "confidence": 0.9,
+  "reason_codes": ["wrong_transfer", "transaction_match"]
+}
+
+2) Payment failure with deducted balance:
+{
+  "ticket_id": "TKT-003",
+  "relevant_transaction_id": "TXN-9301",
+  "evidence_verdict": "consistent",
+  "case_type": "payment_failed",
+  "severity": "high",
+  "department": "payments_ops",
+  "agent_summary": "Customer reports a failed payment where balance appears deducted.",
+  "recommended_next_action": "Investigate ledger status and initiate reversal flow if eligible.",
+  "customer_reply": "We have noted transaction TXN-9301 and will review the payment failure. Any eligible amount will be returned through official channels.",
+  "human_review_required": false,
+  "confidence": 0.9,
+  "reason_codes": ["payment_failed", "potential_balance_deduction"]
+}
+
+3) Phishing report with no transaction evidence:
+{
+  "ticket_id": "TKT-005",
+  "relevant_transaction_id": null,
+  "evidence_verdict": "insufficient_data",
+  "case_type": "phishing_or_social_engineering",
+  "severity": "critical",
+  "department": "fraud_risk",
+  "agent_summary": "Customer reports an unsolicited OTP request and has not shared credentials.",
+  "recommended_next_action": "Escalate to fraud risk and confirm the customer should not share OTP or PIN.",
+  "customer_reply": "We never ask for your PIN or OTP. Please do not share this information with anyone. Our fraud team has been notified.",
+  "human_review_required": true,
+  "confidence": 0.95,
+  "reason_codes": ["phishing", "credential_protection"]
+}
+`;
+
     const language = input.language ?? "en";
     const userType = input.user_type ?? "customer";
     const channel = input.channel ?? "unknown";
@@ -84,6 +137,8 @@ If the request language is "bn", respond in Bengali for the customer_reply secti
 Prefer a ${userType === "merchant" ? "business-formal" : "customer-friendly"} tone when composing the customer_reply.
 
 If there is no transaction history or no clear matching transaction, set relevant_transaction_id to null and evidence_verdict to "insufficient_data" unless the complaint clearly describes fraud or payment failure.
+
+${exampleSection}
 
 Respond with ONLY the JSON object specified above.`;
 
