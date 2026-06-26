@@ -1,13 +1,15 @@
 /**
  * Node Modules
  */
-import express, { Request, Response, NextFunction, Application } from "express";
-import apiRouter from "./routes/api.routes";
+import express, { Application } from "express";
 
 /**
  * Local Modules
  */
+import apiRouter from "./routes/api.routes";
 import devLogger from "./utils/morgan";
+import notFoundHandler from "./middlewares/not-found.middleware";
+import errorHandler from "./middlewares/error-handler.middleware";
 
 /**
  * Application
@@ -26,12 +28,14 @@ app.use(express.urlencoded({ extended: true }));
  */
 app.use("/", apiRouter);
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error("Unhandled Server Error:", err.message);
+/**
+ * 404 — must be mounted AFTER all routes.
+ */
+app.use(notFoundHandler);
 
-    res.status(500).json({
-        status: "error",
-        message: "An internal server error occurred. Please try again later.",
-    });
-});
+/**
+ * Central error middleware — must be mounted last.
+ */
+app.use(errorHandler);
+
 export default app;
