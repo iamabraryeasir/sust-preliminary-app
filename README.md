@@ -1,67 +1,54 @@
 # QueueStorm Investigator
 
-> **AI-Powered Fintech Support Ticket Investigation API**
->
-> An intelligent SupportOps API that analyzes customer complaints, investigates transaction history, determines evidence-backed decisions, routes cases to the appropriate department, and generates safe, policy-compliant customer responses.
+**AI-Powered Fintech Support Ticket Investigation API**
 
----
+QueueStorm Investigator is a backend service that analyzes customer complaints, inspects recent transaction history, and returns evidence-backed structured decisions for support teams.
 
-## Overview
+## Fast Start
 
-QueueStorm Investigator is an AI-powered backend service developed for the **SUST CSE Carnival 2026 – Codex Community Hackathon**.
+1. Install dependencies:
 
-Unlike traditional ticket classifiers that rely solely on complaint text, QueueStorm Investigator performs **evidence-based investigation** by analyzing both the customer's complaint and their recent transaction history before making a decision.
+```bash
+npm install
+```
 
-The system identifies the most relevant transaction, verifies whether the complaint is supported by available evidence, classifies the issue, assigns the responsible department, determines severity, generates an agent-ready investigation summary, recommends operational next steps, and drafts a customer-safe response that strictly follows fintech security guidelines.
+2. Copy configuration:
 
-The API is designed as an **internal AI copilot** for customer support teams—not as an autonomous financial decision maker.
+```bash
+cp .env.example .env
+```
 
----
+3. Update `.env` with your Groq values.
 
-# Features
+4. Build the project:
 
-- AI-powered complaint investigation
+```bash
+npm run build
+```
+
+5. Start the server:
+
+```bash
+npm start
+```
+
+6. Health check:
+
+```bash
+curl http://localhost:5000/health
+```
+
+## Project Features
+
+- Structured `/analyze-ticket` investigation API
 - Evidence-based transaction matching
-- Intelligent case classification
-- Fintech safety guardrails
-- Human review detection
-- Structured JSON API
-- Multilingual complaint understanding
-    - English
-    - Bangla
-    - Mixed Banglish
+- Strong runtime validation with Zod
+- Type-safe TypeScript architecture
+- Groq OpenAI-compatible AI integration
+- Centralized error handling and safety guardrails
+- Support for English, Bengali, and mixed inputs
 
-- Zod request validation
-- Type-safe TypeScript implementation
-- Production-ready Express architecture
-- Health monitoring endpoint
-- Professional REST API
-- Clean layered architecture
-- OpenAI SDK integration with Groq's OpenAI-compatible API
-
----
-
-# Problem Statement
-
-Digital financial platforms receive thousands of customer complaints every day.
-
-Simply classifying complaint text is insufficient.
-
-An intelligent investigator must answer questions like:
-
-- Which transaction is the customer referring to?
-- Does the transaction history support the complaint?
-- Is the complaint suspicious?
-- Which internal department should handle it?
-- How severe is the issue?
-- Does this require manual investigation?
-- How should the support agent respond safely?
-
-QueueStorm Investigator solves these challenges through AI-assisted reasoning combined with structured transaction analysis.
-
----
-
-# Technology Stack
+## Technology Stack
 
 | Category        | Technology               |
 | --------------- | ------------------------ |
@@ -71,174 +58,58 @@ QueueStorm Investigator solves these challenges through AI-assisted reasoning co
 | Validation      | Zod                      |
 | AI SDK          | OpenAI SDK               |
 | AI Model        | Groq (OpenAI-compatible) |
+| Build           | tsup                     |
 | Environment     | dotenv                   |
-| REST API        | Express Router           |
 | Package Manager | npm                      |
 
----
-
-# Project Structure
+## Project Structure
 
 ```text
 src
-│
+├── app.ts
 ├── config
 │   └── index.ts
-│
 ├── controllers
 │   └── ticket.controller.ts
-│
+├── middlewares
+│   ├── error-handler.middleware.ts
+│   └── not-found.middleware.ts
 ├── routes
 │   └── api.routes.ts
-│
+├── schemas
+│   └── analyze-ticket.schema.ts
 ├── services
+│   ├── investigation-ai.ts
+│   ├── investigation-parse.ts
+│   ├── investigation-prompt.ts
 │   └── investigator.service.ts
-│
 ├── types
-│   └── index.ts
-│
-├── app.ts
+│   └── schema.ts
 └── server.ts
 ```
 
-## Folder Responsibilities
+## API Endpoints
 
-### config/
-
-Application configuration including environment variables and AI client initialization.
-
----
-
-### controllers/
-
-Handles incoming HTTP requests, validates data flow, and delegates business logic to services.
-
----
-
-### services/
-
-Contains the core AI investigation engine responsible for:
-
-- Prompt creation
-- AI communication
-- Transaction reasoning
-- Response parsing
-- Decision generation
-
----
-
-### routes/
-
-Defines all public API endpoints.
-
----
-
-### types/
-
-Centralized TypeScript interfaces and shared types.
-
----
-
-### app.ts
-
-Creates and configures the Express application.
-
----
-
-### server.ts
-
-Starts the HTTP server.
-
----
-
-# System Architecture
-
-```text
-                Client
-                  │
-                  ▼
-          POST /analyze-ticket
-                  │
-                  ▼
-            Express Router
-                  │
-                  ▼
-            Ticket Controller
-                  │
-                  ▼
-          Zod Request Validation
-                  │
-                  ▼
-        Investigator Service
-                  │
-        ┌─────────┴─────────┐
-        │                   │
-        ▼                   ▼
- Transaction History     Complaint
-    Processing           Processing
-        │                   │
-        └─────────┬─────────┘
-                  ▼
-        Groq OpenAI-compatible API
-                  │
-                  ▼
-      Structured Investigation
-                  │
-                  ▼
-        JSON Response Returned
-```
-
----
-
-# Investigation Workflow
-
-1. Receive customer complaint.
-2. Validate request using Zod.
-3. Read recent transaction history.
-4. Construct investigation prompt.
-5. Send structured context to Groq's OpenAI-compatible API.
-6. AI determines:
-    - Relevant transaction
-    - Evidence verdict
-    - Case type
-    - Severity
-    - Department
-    - Human review requirement
-
-7. Generate safe customer response.
-8. Return structured JSON.
-
----
-
-# API Endpoints
-
-## Health Check
+### Health Check
 
 ```http
 GET /health
 ```
 
-### Response
+Response:
 
 ```json
-{
-    "status": "ok"
-}
+{ "status": "OK" }
 ```
 
----
-
-## Analyze Ticket
+### Analyze Ticket
 
 ```http
 POST /analyze-ticket
+Content-Type: application/json
 ```
 
-Receives a customer complaint and transaction history and returns an AI-generated investigation result.
-
----
-
-# Example Request
+Request body:
 
 ```json
 {
@@ -251,9 +122,7 @@ Receives a customer complaint and transaction history and returns an AI-generate
 }
 ```
 
----
-
-# Example Response
+Response body:
 
 ```json
 {
@@ -272,263 +141,60 @@ Receives a customer complaint and transaction history and returns an AI-generate
 }
 ```
 
----
+## Environment Variables
 
-# Supported Case Types
-
-- Wrong Transfer
-- Payment Failed
-- Refund Request
-- Duplicate Payment
-- Merchant Settlement Delay
-- Agent Cash-In Issue
-- Phishing / Social Engineering
-- Other
-
----
-
-# AI Reasoning
-
-The investigation engine does **not** simply classify complaint text.
-
-Instead, it evaluates multiple contextual signals including:
-
-- Complaint intent
-- Mentioned amount
-- Mentioned time
-- Transaction type
-- Transaction status
-- Counterparty
-- Previous transaction patterns
-- Available evidence
-
-The AI produces a structured decision rather than free-form text, ensuring responses remain machine-readable and compliant with the expected API contract.
-
----
-
-# Safety Guardrails
-
-The system is designed around fintech safety principles.
-
-It will **never**:
-
-- Ask for PIN
-- Ask for OTP
-- Ask for passwords
-- Ask for full card numbers
-- Promise refunds without authorization
-- Promise reversals
-- Confirm account recovery
-- Direct customers to unofficial third parties
-
-High-risk or ambiguous cases are flagged for human review instead of making unsupported assumptions.
-
----
-
-# Input Validation
-
-All incoming requests are validated using **Zod**.
-
-Validation includes:
-
-- Required fields
-- Data types
-- Enum values
-- Nested transaction objects
-- Malformed request handling
-
-Invalid requests return appropriate HTTP status codes without crashing the application.
-
----
-
-# Error Handling
-
-The API follows fail-safe principles.
-
-Possible responses include:
-
-- 200 OK
-- 400 Bad Request
-- 422 Unprocessable Entity
-- 500 Internal Server Error
-
-Sensitive information such as API keys, stack traces, or internal configuration details is never exposed to clients.
-
----
-
-# Performance
-
-The application is designed to be lightweight and efficient.
-
-Goals include:
-
-- Fast API responses
-- Minimal memory usage
-- Type-safe development
-- Stable AI integration
-- Predictable JSON output
-
----
-
-# Environment Variables
-
-Create a `.env` file in the project root.
+Create `.env` with these values:
 
 ```env
 PORT=5000
-
 GROQ_API_KEY=YOUR_GROQ_API_KEY
+MODEL_NAME=groq-1.0
+GROQ_API_BASE_URL=https://api.groq.com/openai/v1
 ```
 
----
+## Build and Run
 
-# Installation
-
-Clone the repository.
-
-```bash
-git clone <repository-url>
-```
-
-Move into the project.
-
-```bash
-cd queue-storm-investigator
-```
-
-Install dependencies.
-
-```bash
-npm install
-```
-
-Configure environment variables.
-
-```bash
-cp .env.example .env
-```
-
-Start development server.
+- Development mode:
 
 ```bash
 npm run dev
 ```
 
-Build production.
+- Production build:
 
 ```bash
 npm run build
-```
-
-Run production server.
-
-```bash
 npm start
 ```
 
----
+## AI Integration
 
-# Live Deployment
+- Uses the OpenAI SDK to call Groq's OpenAI-compatible endpoint.
+- The service passes a strongly constrained prompt and expects a single JSON object reply.
+- Response parsing uses Zod validation to enforce the expected contract.
 
-The application is deployed as a publicly accessible REST API.
+## Safety Guidelines
 
-Replace the following placeholder with your deployed URL.
+The system is designed to avoid unsafe AI responses. It will not:
 
-```text
-Base URL
+- Ask for PIN, OTP, password, or full card numbers
+- Promise refunds, reversals, or account recovery without authority
+- Direct customers to unofficial third parties
+- Leak sensitive config or internal errors to the client
 
-https://your-live-api-url.com
-```
+## Validation
 
-Health endpoint
+- Request payloads are validated with `AnalyzeTicketRequestSchema`
+- AI responses are validated with `AnalyzeTicketResponseSchema`
+- Invalid requests return `400`
+- AI parse/schema failures return a safe error payload
 
-```text
-GET /health
-```
+## Notes
 
-Analysis endpoint
+- This service is intended for internal support workflows, not customer-facing financial authorization.
+- The AI output is structured and human-review-safe.
+- `tsup` is used for production builds to generate an ESM bundle in `dist/`.
 
-```text
-POST /analyze-ticket
-```
+## License
 
----
-
-# Design Principles
-
-The project follows several engineering principles:
-
-- Separation of concerns
-- Layered architecture
-- Strong typing
-- Centralized validation
-- AI encapsulation
-- Minimal controller logic
-- Reusable service layer
-- Predictable API contracts
-
----
-
-# Limitations
-
-Current implementation depends on an external LLM for reasoning.
-
-Potential limitations include:
-
-- AI inference latency
-- Prompt dependency
-- External API availability
-- Model output variability
-
-Future versions could incorporate:
-
-- Deterministic rule engine
-- Hybrid AI + rules reasoning
-- Transaction similarity scoring
-- Confidence calibration
-- Observability
-- Response caching
-- Analytics dashboard
-
----
-
-# Future Improvements
-
-- Prompt optimization
-- Retry strategy
-- Streaming AI responses
-- Response caching
-- Logging and monitoring
-- Unit tests
-- Integration tests
-- Rate limiting
-- Authentication
-- OpenAPI / Swagger documentation
-- CI/CD pipeline
-- AI evaluation benchmarks
-
----
-
-# Acknowledgements
-
-Developed for the **SUST CSE Carnival 2026 – Codex Community Hackathon**.
-
-Special thanks to the organizers for designing a practical AI SupportOps challenge focused on evidence-based reasoning, fintech safety, and production-ready API design.
-
----
-
-# License
-
-This project was developed for educational and hackathon purposes.
-
----
-
-## Author
-
-**Abrar Yeasir**
-
-Undergraduate Student, Computer Science & Engineering
-
-Premier University, Chattogram
-
-Passionate about Backend Engineering, Artificial Intelligence, and Building Scalable Software.
+This project is built for educational and hackathon use.
