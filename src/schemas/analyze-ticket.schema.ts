@@ -10,15 +10,18 @@ import { z } from "zod";
 
 export const TransactionTypeSchema = z.enum([
     "transfer",
-    "cash_out",
     "payment",
-    "receive_money",
+    "cash_in",
+    "cash_out",
+    "settlement",
+    "refund",
 ]);
 
 export const TransactionStatusSchema = z.enum([
     "completed",
     "failed",
     "pending",
+    "reversed",
 ]);
 
 export const EvidenceVerdictSchema = z.enum([
@@ -29,20 +32,24 @@ export const EvidenceVerdictSchema = z.enum([
 
 export const CaseTypeSchema = z.enum([
     "wrong_transfer",
-    "failed_transaction_charge",
-    "unauthorized_fee",
+    "payment_failed",
+    "refund_request",
     "duplicate_payment",
-    "cash_out_discrepancy",
-    "general_inquiry",
+    "merchant_settlement_delay",
+    "agent_cash_in_issue",
+    "phishing_or_social_engineering",
+    "other",
 ]);
 
 export const SeveritySchema = z.enum(["low", "medium", "high", "critical"]);
 
 export const DepartmentSchema = z.enum([
+    "customer_support",
+    "dispute_resolution",
     "payments_ops",
-    "fraud_compliance",
-    "customer_relations",
-    "tech_support",
+    "merchant_operations",
+    "agent_operations",
+    "fraud_risk",
 ]);
 
 // --- REQUEST ---
@@ -57,7 +64,9 @@ export const TransactionEntrySchema = z.object({
     currency: z
         .string()
         .trim()
-        .length(3, "Currency must be a 3-letter ISO code"),
+        .length(3, "Currency must be a 3-letter ISO code")
+        .optional()
+        .default("BDT"),
     type: TransactionTypeSchema,
     status: TransactionStatusSchema,
     counterparty: z.string().trim().min(1).max(120),
@@ -70,10 +79,39 @@ export const AnalyzeTicketRequestSchema = z.object({
         .trim()
         .min(1, "Complaint cannot be empty")
         .max(2000, "Complaint is too long"),
+    language: z.enum(["en", "bn", "mixed"]).optional(),
+    channel: z
+        .enum([
+            "in_app_chat",
+            "call_center",
+            "email",
+            "merchant_portal",
+            "field_agent",
+        ])
+        .optional(),
+    user_type: z
+        .enum(["customer", "merchant", "agent", "unknown"])
+        .optional(),
+    campaign_context: z.string().trim().max(128).optional(),
     transaction_history: z
         .array(TransactionEntrySchema)
-        .max(50, "Maximum 50 transactions allowed"),
+        .max(50, "Maximum 50 transactions allowed")
+        .optional()
+        .default([]),
+    metadata: z.record(z.string(), z.unknown()).optional(),
 });
+
+export const AnalyzeTicketRequestEnvelopeSchema = z.preprocess((value) => {
+    if (
+        typeof value === "object" &&
+        value !== null &&
+        "input" in value &&
+        typeof (value as any).input === "object"
+    ) {
+        return (value as any).input;
+    }
+    return value;
+}, AnalyzeTicketRequestSchema);
 
 export type AnalyzeTicketRequestInput = z.infer<
     typeof AnalyzeTicketRequestSchema
@@ -95,10 +133,11 @@ export const AnalyzeTicketResponseSchema = z.object({
     confidence: z
         .number()
         .min(0, "Confidence must be >= 0")
-        .max(1, "Confidence must be <= 1"),
+        .max(1, "Confidence must be <= 1")
+        .optional(),
     reason_codes: z
         .array(z.string().min(1).max(64))
-        .min(1, "At least one reason code is required"),
+        .optional(),
 });
 
 export type AnalyzeTicketResponseInput = z.infer<

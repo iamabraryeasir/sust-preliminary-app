@@ -3,7 +3,7 @@
  *
  * Responsibilities:
  *   1. Build a safety-hardened investigation prompt.
- *   2. Call Google Gemini via the OpenAI-compatible API.
+ *   2. Call the AI model via the OpenAI-compatible API.
  *   3. Parse + validate the response against the response Zod schema.
  *   4. Apply safety post-processing (force human review on low confidence
  *      or inconsistent evidence, override ticket_id, trim strings).
@@ -20,8 +20,11 @@ import { getOpenAIClient } from "../config";
 import { ServiceError } from "../utils/errors";
 import type { AnalyzeTicketRequest } from "../types/schema";
 import type { AnalyzeTicketResponseInput } from "../schemas/analyze-ticket.schema";
-import { buildInvestigationPrompt } from "./investigation-prompt";
-import { callGemini } from "./investigation-ai";
+import {
+    buildInvestigationPrompt,
+    type PromptPayload,
+} from "./investigation-prompt";
+import { callAI } from "./investigation-ai";
 import { parseAndValidate } from "./investigation-parse";
 
 /**
@@ -31,6 +34,7 @@ import { parseAndValidate } from "./investigation-parse";
 const shouldForceHumanReview = (
     parsed: AnalyzeTicketResponseInput,
 ): boolean => {
+    if (parsed.confidence === undefined) return true;
     if (parsed.confidence < 0.7) return true;
     if (parsed.evidence_verdict !== "consistent") return true;
     return false;
@@ -53,27 +57,68 @@ const finalizeResponse = (
  *
  * Orchestrates prompt -> call -> parse -> safety post-processing.
  *
+ * On a parse/schema failure (rare, but happens when the AI response leaks
+ * prose or emits an out-of-enum value), we retry ONCE with a stricter reminder
+ * to respond with raw JSON only. After that we surface the error.
+ *
  * Never throws a raw Error: only ServiceError or HttpError reach the
  * controller. Anything truly unexpected is wrapped.
  */
 const investigate = async (
     input: AnalyzeTicketRequest,
 ): Promise<AnalyzeTicketResponseInput> => {
-    try {
-        const client = getOpenAIClient();
-        const prompt = buildInvestigationPrompt(input);
-        const raw = await callGemini(prompt, client);
-        const parsed = parseAndValidate(raw, input.ticket_id);
-        return finalizeResponse(parsed, input.ticket_id);
-    } catch (err) {
-        if (err instanceof ServiceError) throw err;
+    const client = getOpenAIClient();
+    const basePrompt = buildInvestigationPrompt(input);
 
-        throw new ServiceError(
-            "ai_upstream_failure",
-            "Unexpected error during investigation",
-            err,
-        );
+    const attempts: PromptPayload[] = [
+        basePrompt,
+        {
+            system: basePrompt.system,
+            user:
+                `${basePrompt.user}\n\n` +
+                `IMPORTANT: Your previous reply was not valid JSON. ` +
+                `Respond again with ONLY a single raw JSON object — no ` +
+                `markdown fences, no commentary, no explanation. The JSON ` +
+                `must start with '{' and end with '}'.`,
+        },
+    ];
+
+    let lastServiceError: ServiceError | null = null;
+
+    for (const prompt of attempts) {
+        try {
+            const raw = await callAI(prompt, client);
+            const parsed = parseAndValidate(raw, input.ticket_id);
+            return finalizeResponse(parsed, input.ticket_id);
+        } catch (err) {
+            if (err instanceof ServiceError) {
+                // Only retry on parse/format issues — not on timeouts or
+                // upstream network failures (those won't fix themselves).
+                const retryable =
+                    err.code === "ai_invalid_json" ||
+                    err.code === "ai_schema_violation";
+                lastServiceError = err;
+                if (!retryable) throw err;
+                continue;
+            }
+
+            // Defensive: any unexpected error becomes a generic upstream failure.
+            throw new ServiceError(
+                "ai_upstream_failure",
+                "Unexpected error during investigation",
+                err,
+            );
+        }
     }
+
+    // Both attempts failed with a retryable parse/schema issue.
+    throw (
+        lastServiceError ??
+        new ServiceError(
+            "ai_upstream_failure",
+            "Investigation failed after retry",
+        )
+    );
 };
 
 export default {

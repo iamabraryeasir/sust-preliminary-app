@@ -8,14 +8,14 @@ const AI_TIMEOUT_MS = 15_000;
 const MAX_TOKENS = 1024;
 const TEMPERATURE = 0.2;
 
-export const callGemini = async (
+export const callAI = async (
     prompt: PromptPayload,
     client: OpenAI,
 ): Promise<string> => {
     try {
         const response = await client.chat.completions.create(
             {
-                model: config.GEMINI_MODEL,
+                model: config.MODEL_NAME as string,
                 messages: [
                     { role: "system", content: prompt.system },
                     { role: "user", content: prompt.user },
@@ -31,7 +31,7 @@ export const callGemini = async (
         if (!content || typeof content !== "string") {
             throw new ServiceError(
                 "ai_upstream_failure",
-                "Gemini returned an empty response",
+                "AI returned an empty response",
             );
         }
         return content;

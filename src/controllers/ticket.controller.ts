@@ -18,7 +18,7 @@ import type { Request, Response, NextFunction } from "express";
  * Local Modules
  */
 import investigatorService from "../services/investigator.service";
-import { AnalyzeTicketRequestSchema } from "../schemas/analyze-ticket.schema";
+import { AnalyzeTicketRequestEnvelopeSchema } from "../schemas/analyze-ticket.schema";
 import { HttpError } from "../utils/errors";
 
 /**
@@ -35,7 +35,7 @@ const analyzeTicket = async (
     next: NextFunction,
 ): Promise<void> => {
     try {
-        const parsed = AnalyzeTicketRequestSchema.safeParse(req.body);
+        const parsed = AnalyzeTicketRequestEnvelopeSchema.safeParse(req.body);
         if (!parsed.success) {
             throw new HttpError(
                 400,
@@ -46,10 +46,7 @@ const analyzeTicket = async (
 
         const result = await investigatorService.investigate(parsed.data);
 
-        res.status(200).json({
-            status: "success",
-            data: result,
-        });
+        res.status(200).json(result);
     } catch (err) {
         next(err);
     }

@@ -2,18 +2,34 @@
 
 export interface TransactionEntry {
     transaction_id: string;
-    timestamp: string; 
+    timestamp: string;
     amount: number;
     currency: string;
-    type: "transfer" | "cash_out" | "payment" | "receive_money";
-    status: "completed" | "failed" | "pending";
+    type:
+        | "transfer"
+        | "payment"
+        | "cash_in"
+        | "cash_out"
+        | "settlement"
+        | "refund";
+    status: "completed" | "failed" | "pending" | "reversed";
     counterparty: string;
 }
 
 export interface AnalyzeTicketRequest {
     ticket_id: string;
     complaint: string;
-    transaction_history: TransactionEntry[];
+    language?: "en" | "bn" | "mixed";
+    channel?:
+        | "in_app_chat"
+        | "call_center"
+        | "email"
+        | "merchant_portal"
+        | "field_agent";
+    user_type?: "customer" | "merchant" | "agent" | "unknown";
+    campaign_context?: string;
+    transaction_history?: TransactionEntry[];
+    metadata?: Record<string, unknown>;
 }
 
 // --- STRICT RESPONSE SCHEMA ENUMS ---
@@ -25,19 +41,23 @@ export type EvidenceVerdict =
 
 export type CaseType =
     | "wrong_transfer"
-    | "failed_transaction_charge"
-    | "unauthorized_fee"
+    | "payment_failed"
+    | "refund_request"
     | "duplicate_payment"
-    | "cash_out_discrepancy"
-    | "general_inquiry";
+    | "merchant_settlement_delay"
+    | "agent_cash_in_issue"
+    | "phishing_or_social_engineering"
+    | "other";
 
 export type Severity = "low" | "medium" | "high" | "critical";
 
 export type Department =
+    | "customer_support"
+    | "dispute_resolution"
     | "payments_ops"
-    | "fraud_compliance"
-    | "customer_relations"
-    | "tech_support";
+    | "merchant_operations"
+    | "agent_operations"
+    | "fraud_risk";
 
 // --- RESPONSE SCHEMA INTERFACE ---
 
@@ -52,6 +72,6 @@ export interface AnalyzeTicketResponse {
     recommended_next_action: string;
     customer_reply: string;
     human_review_required: boolean;
-    confidence: number; // Float between 0.00 and 1.00
-    reason_codes: string[];
+    confidence?: number; // Optional float between 0.00 and 1.00
+    reason_codes?: string[];
 }

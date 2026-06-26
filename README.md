@@ -37,7 +37,7 @@ The API is designed as an **internal AI copilot** for customer support teams—n
 - Health monitoring endpoint
 - Professional REST API
 - Clean layered architecture
-- OpenAI SDK integration with Google Gemini API
+- OpenAI SDK integration with Groq's OpenAI-compatible API
 
 ---
 
@@ -70,7 +70,7 @@ QueueStorm Investigator solves these challenges through AI-assisted reasoning co
 | Language        | TypeScript               |
 | Validation      | Zod                      |
 | AI SDK          | OpenAI SDK               |
-| AI Model        | Google Gemini (Free API) |
+| AI Model        | Groq (OpenAI-compatible) |
 | Environment     | dotenv                   |
 | REST API        | Express Router           |
 | Package Manager | npm                      |
@@ -179,7 +179,7 @@ Starts the HTTP server.
         │                   │
         └─────────┬─────────┘
                   ▼
-        Google Gemini API
+        Groq OpenAI-compatible API
                   │
                   ▼
       Structured Investigation
@@ -196,7 +196,7 @@ Starts the HTTP server.
 2. Validate request using Zod.
 3. Read recent transaction history.
 4. Construct investigation prompt.
-5. Send structured context to Gemini.
+5. Send structured context to Groq's OpenAI-compatible API.
 6. AI determines:
     - Relevant transaction
     - Evidence verdict
@@ -377,7 +377,7 @@ Create a `.env` file in the project root.
 ```env
 PORT=5000
 
-GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY
+GROQ_API_KEY=YOUR_GROQ_API_KEY
 ```
 
 ---

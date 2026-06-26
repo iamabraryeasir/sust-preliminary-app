@@ -13,23 +13,25 @@ const config = Object.freeze({
     NODE_ENV: process.env.NODE_ENV || "development",
 
     /**
-     * Google Gemini credentials (used via OpenAI-compatible endpoint).
-     * Key may be undefined — `server.ts` performs the fail-fast check
-     * before anything tries to call the AI service.
+     * Groq API key provided by the environment.
      */
-    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    GROQ_API_KEY: process.env.GROQ_API_KEY,
 
     /**
-     * Gemini model name. Defaults to a fast, free-tier friendly variant.
-     * Override via .env (e.g. "gemini-2.0-flash", "gemini-2.5-pro").
+     * Model name provided by the environment.
      */
-    GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    MODEL_NAME: process.env.MODEL_NAME,
+
+    /**
+     * Base URL for the Groq OpenAI-compatible endpoint.
+     */
+    GROQ_API_BASE_URL: process.env.GROQ_API_BASE_URL,
 });
 
 /**
  * Cached lazy singleton for the OpenAI SDK client. We point the SDK
- * at Google's OpenAI-compatible endpoint so we can reuse the same
- * `chat.completions` API surface across providers.
+ * at Groq's OpenAI-compatible endpoint so we can reuse the same
+ * `chat.completions` API surface.
  */
 let cachedClient: OpenAI | null = null;
 
@@ -38,18 +40,18 @@ export function getOpenAIClient(): OpenAI {
         return cachedClient;
     }
 
-    const apiKey = config.GOOGLE_API_KEY;
+    const apiKey = config.GROQ_API_KEY;
 
     if (!apiKey) {
         throw new Error(
-            "GOOGLE_API_KEY is not set — cannot construct the AI client. " +
-                "Add it to your .env file (see .env.example).",
+            "GROQ API key is not set — cannot construct the AI client. " +
+                "Add GROQ_API_KEY to your .env file (see .env.example).",
         );
     }
 
     cachedClient = new OpenAI({
         apiKey,
-        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+        baseURL: config.GROQ_API_BASE_URL,
     });
 
     return cachedClient;
