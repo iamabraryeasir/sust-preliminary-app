@@ -49,6 +49,18 @@ export function getOpenAIClient(): OpenAI {
         );
     }
 
+    if (!config.MODEL_NAME) {
+        throw new Error(
+            "MODEL_NAME is not set — specify the Groq model name in your environment.",
+        );
+    }
+
+    if (!config.GROQ_API_BASE_URL) {
+        throw new Error(
+            "GROQ_API_BASE_URL is not set — specify the Groq OpenAI-compatible endpoint.",
+        );
+    }
+
     cachedClient = new OpenAI({
         apiKey,
         baseURL: config.GROQ_API_BASE_URL,
